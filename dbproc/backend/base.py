@@ -31,10 +31,17 @@ class Backend(object):
         raise TypeError('Connection type %r not supported' % instance)
 
     def __contains__(self, func):
-        raise NotImplementedError
+        return func in self.procedure
 
     def __getitem__(self, func):
-        raise NotImplementedError
+        if func in self.procedure:
+            return self.procedure[func]
+        else:
+            raise KeyError(func)
 
-    def lookup(self, func):
-        raise NotImplementedError
+
+class Empty(type):
+    '''
+    Placeholder class.
+    '''
+    pass
