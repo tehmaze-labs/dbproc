@@ -12,7 +12,7 @@ from dbproc.procedure import Procedure
 
 class MySQLFunc(Procedure):
     '''
-    Wrapper for a MySQL stored function.
+    Callable wrapper for a MySQL stored function.
     '''
 
     def __init__(self, backend, proc, schema=None, data_type=None):
@@ -121,8 +121,8 @@ class MySQLProc(MySQLFunc):
 
     def inspect(self):
         '''
-        Use the `mysql.proc` table to find out about this procedure's
-        signature. This method requires `SELECT` privileges on the
+        Use the ``mysql.proc`` table to find out about this procedure's
+        signature. This method requires ``SELECT`` privileges on the
         aformentioned table.
         '''
         query = 'SELECT * FROM mysql.proc WHERE db=%s AND specific_name=%s'
@@ -158,12 +158,15 @@ class MySQLBackend(Backend):
     MySQL backend driver, supports both stored functions and stored procedure
     calls.
 
-    Caveats
-    =======
+    Supports the following DB API 2.0 modules:
+     * `mysql-python <http://mysql-python.sourceforge.net/>`_
 
-    The default `SHOW FUNCTION STATUS` and `SHOW PROCEDURE STATUS` queries do
-    not show signatures, the actual information lives in the `mysql.proc`
-    table, but this requires one to set up `SELECT` privileges.
+    .. note::
+
+       The default ``SHOW FUNCTION STATUS`` and ``SHOW PROCEDURE STATUS``
+       queries do not show signatures, the actual information lives in the
+       ``mysql.proc`` table, but this requires one to set up ``SELECT``
+       privileges.
     '''
 
     def __init__(self, *args, **kwargs):
@@ -179,12 +182,19 @@ class MySQLBackend(Backend):
             return isinstance(instance, MySQLdb.connection)
 
     def get_cursor(self):
+        '''
+        Returns a cursor for the current database connection.
+
+        :rtype: instance of :class:`MySQLdb.cursor`
+        '''
         return self.connection.cursor(MySQLdb.cursors.DictCursor)
 
     def get_schema(self):
         '''
         Get the currently active schema, in MySQL schemas and databases are
         synonymous.
+
+        :rtype: str
         '''
         cursor = self.get_cursor()
         cursor.execute('SELECT DATABASE() AS `schema`')
@@ -194,6 +204,10 @@ class MySQLBackend(Backend):
             cursor.close()
 
     def inspect(self):
+        '''
+        Make an inventory of available stored functions and procedures by
+        inspecting the ``information_schema.routines`` table.
+        '''
         query = 'SELECT * FROM information_schema.routines'
         cursor = self.get_cursor()
         cursor.execute(query)

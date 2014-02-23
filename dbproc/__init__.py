@@ -1,3 +1,3 @@
-from dbproc.wrap import Wrap
+from dbproc.wrap import Wrap as DBProc
 
-__all__ = ['Wrap']
+__all__ = ['DBProc']

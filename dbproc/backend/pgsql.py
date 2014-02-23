@@ -10,6 +10,16 @@ from dbproc.procedure import Procedure
 
 
 class PgSQLProc(Procedure):
+    '''
+    Callable wrapper for a PostGreSQL stored procedure.
+
+    :param backend: instance of :class:`PgSQLBackend`
+    :param proc: name of the stored procedure
+    :param param_count: number of required arguments
+    :param param_names: names of the arguments
+    :param param_types: types of the arguments
+    '''
+
     def __init__(self, backend, proc, param_count, param_names, param_types,
             return_type):
         self.backend = backend
@@ -53,6 +63,13 @@ class PgSQLProc(Procedure):
 
 
 class PgSQLBackend(Backend):
+    '''
+    PostGreSQL backend driver.
+
+    Supports the following DB API 2.0 modules:
+      * `psycopg2 <http://initd.org/psycopg/>`_
+    '''
+
     def __init__(self, *args, **kwargs):
         super(PgSQLBackend, self).__init__(*args, **kwargs)
         self.schema = self.schema or self.get_schema()
@@ -66,11 +83,21 @@ class PgSQLBackend(Backend):
             return isinstance(instance, psycopg2._psycopg.connection)
 
     def get_cursor(self):
+        '''
+        Returns a cursor for the current database connection.
+
+        :rtype: instance of :py:class:`<psycopg2.extensions.cursor>`
+        '''
         return self.connection.cursor(
             cursor_factory=psycopg2.extras.RealDictCursor,
         )
 
     def get_schema(self):
+        '''
+        Get the currently active schema.
+
+        :rtype: str
+        '''
         cursor = self.get_cursor()
         cursor.execute('SELECT current_schema() AS schema')
         try:
@@ -79,6 +106,10 @@ class PgSQLBackend(Backend):
             cursor.close()
 
     def inspect(self):
+        '''
+        Make an inventory of available stored procedures by inspecting the
+        ``pg_catalog.pg_prog`` table.
+        '''
         query = '''
         SELECT
                 p.proname AS proc
